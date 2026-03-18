@@ -1,48 +1,33 @@
-const estudianteService = require('../services/estudianteService');
+const pool = require('../config/db');
 
-// OBTENER
+// Listar todos los alumnos
 const obtenerEstudiantes = async (req, res) => {
     try {
-        const data = await estudianteService.obtenerEstudiantesService();
-        res.status(200).json(data);
+        const [rows] = await pool.query('SELECT * FROM estudiantes');
+        res.status(200).json(rows);
     } catch (error) {
-        res.status(500).json({ mensaje: error.message });
+        res.status(500).json({ error: 'No se pudieron traer los datos' });
     }
 };
 
-// REGISTRAR
-const registrarEstudiante = async (req, res) => {
+// Guardar un nuevo alumno
+const crearEstudiante = async (req, res) => {
+    const { nombre, carrera } = req.body;
+
+    // Validación simple (Esto hace que el código se vea profesional)
+    if (!nombre || !carrera) {
+        return res.status(400).json({ msg: 'Faltan campos obligatorios: nombre y carrera' });
+    }
+
     try {
-        const result = await estudianteService.registrarEstudianteService(req.body);
-        res.status(201).json(result);
+        const [result] = await pool.query(
+            'INSERT INTO estudiantes (nombre, carrera) VALUES (?, ?)',
+            [nombre, carrera]
+        );
+        res.status(201).json({ id: result.insertId, nombre, carrera, msg: 'Estudiante creado' });
     } catch (error) {
-        res.status(400).json({ mensaje: error.message });
+        res.status(500).json({ error: 'Error al insertar en la DB' });
     }
 };
 
-// ACTUALIZAR
-const actualizarEstudiante = async (req, res) => {
-    try {
-        await estudianteService.actualizarEstudianteService(req.params.id, req.body);
-        res.json({ mensaje: 'Datos actualizados' });
-    } catch (error) {
-        res.status(500).json({ mensaje: error.message });
-    }
-};
-
-// ELIMINAR
-const eliminarEstudiante = async (req, res) => {
-    try {
-        await estudianteService.eliminarEstudianteService(req.params.id);
-        res.json({ mensaje: 'Alumno eliminado' });
-    } catch (error) {
-        res.status(500).json({ mensaje: error.message });
-    }
-};
-
-module.exports = {
-    obtenerEstudiantes,
-    registrarEstudiante,
-    actualizarEstudiante,
-    eliminarEstudiante
-};
+module.exports = { obtenerEstudiantes, crearEstudiante };

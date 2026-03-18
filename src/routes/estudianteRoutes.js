@@ -1,15 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    registrarEstudiante, 
-    obtenerEstudiantes, 
-    actualizarEstudiante, 
-    eliminarEstudiante 
-} = require('../controllers/estudianteController');
+const { obtenerEstudiantes, crearEstudiante } = require('../controllers/estudianteController');
 
-router.post('/', registrarEstudiante);
+// Ruta para obtener (GET) y para crear (POST)
 router.get('/', obtenerEstudiantes);
-router.put('/:id', actualizarEstudiante);
-router.delete('/:id', eliminarEstudiante);
+router.post('/', crearEstudiante);
 
 module.exports = router;

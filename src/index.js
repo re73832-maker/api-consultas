@@ -1,49 +1,30 @@
-// Cargar variables de entorno (IMPORTANTE que sea lo primero)
-require('dotenv').config();
-
 const express = require('express');
-const cors = require('cors');
-
+const path = require('path');
 const app = express();
+const estudianteRoutes = require('./routes/estudianteRoutes');
 
-// Importar rutas
-const rutasEstudiantes = require('./routes/estudianteRoutes');
-const rutasConsultas = require('./routes/consultaRoutes');
-
-// Conexión a la base de datos
-require('./config/db');
-
-// Middlewares
-app.use(cors());
+// 1. Configuración de datos (Middlewares)
 app.use(express.json());
 
-// 🔍 PRUEBA (puedes quitarla después)
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
-console.log("DB_NAME:", process.env.DB_NAME);
+// 2. Definir la ruta de la carpeta public (Ahora está al mismo nivel que index.js)
+const publicPath = path.join(__dirname, 'public');
 
-// Ruta de prueba
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: '¡API funcionando!' });
+// 3. Servir archivos estáticos
+app.use(express.static(publicPath));
+
+// 4. Forzar la entrega del index.html en la raíz
+app.get('/', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-// Rutas principales
-app.use('/api/estudiantes', rutasEstudiantes);
-app.use('/api/consultas', rutasConsultas);
+// 5. Rutas de la API
+app.use('/api/estudiantes', estudianteRoutes);
 
-// Middleware global de errores (SIEMPRE al final)
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        mensaje: 'Ocurrió un error interno en el servidor',
-        error: process.env.NODE_ENV === 'development' ? err.message : {}
-    });
-});
-
-// Puerto
+// 6. Encendido del servidor (Railway usa el puerto que él asigne)
 const PORT = process.env.PORT || 3000;
-
-// Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log('--------------------------------------------');
+    console.log(`🚀 Servidor en línea`);
+    console.log(`📂 Serviendo HTML desde: ${publicPath}`);
+    console.log('--------------------------------------------');
 });

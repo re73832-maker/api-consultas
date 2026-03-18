@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Escolar - Railway</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background: #0056b3; }
+        ul { list-style: none; padding: 0; margin-top: 20px; }
+        li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Registrar Estudiante</h2>
+        <input type="text" id="nombre" placeholder="Nombre completo">
+        <input type="text" id="carrera" placeholder="Carrera">
+        <button onclick="guardar()">Guardar en Railway</button>
+
+        <h3>Lista de Estudiantes</h3>
+        <ul id="lista"></ul>
+    </div>
+
+    <script>
+        // Función para cargar la lista de la DB
+        async function cargar() {
+            const res = await fetch('/api/estudiantes');
+            const datos = await res.json();
+            const lista = document.getElementById('lista');
+            lista.innerHTML = datos.map(e => `<li>${e.nombre} <span>(${e.carrera})</span></li>`).join('');
+        }
+
+        // Función para enviar datos
+        async function guardar() {
+            const nombre = document.getElementById('nombre').value;
+            const carrera = document.getElementById('carrera').value;
+
+            await fetch('/api/estudiantes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, carrera })
+            });
+
+            document.getElementById('nombre').value = '';
+            document.getElementById('carrera').value = '';
+            cargar(); // Recargar la lista
+        }
+
+        cargar(); // Cargar al abrir la página
+    </script>
+</body>
+</html>
