@@ -3,16 +3,13 @@ const router = express.Router();
 const { 
     crearConsulta, 
     obtenerConsultas, 
-    eliminarConsulta 
+    eliminarConsulta,
+    actualizarConsulta 
 } = require('../controllers/consultaController');
 
-// Ruta para agendar (POST)
 router.post('/', crearConsulta);
-
-// Ruta para ver historial (GET)
 router.get('/', obtenerConsultas);
-
-// Ruta para eliminar (DELETE)
 router.delete('/:id', eliminarConsulta);
+router.put('/:id', actualizarConsulta); // Ruta para actualizar
 
 module.exports = router;

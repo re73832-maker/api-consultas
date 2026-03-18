@@ -1,37 +1,52 @@
-const consultaService = require('../services/consultaService');
+const db = require('../config/db');
 
-// CREAR
-const crearConsulta = async (req, res) => {
-    try {
-        const result = await consultaService.crearConsultaService(req.body);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({ mensaje: error.message });
-    }
-};
-
-// OBTENER
+// Obtener todos
 const obtenerConsultas = async (req, res) => {
     try {
-        const data = await consultaService.obtenerConsultasService();
-        res.status(200).json(data);
+        const [rows] = await db.query('SELECT * FROM estudiantes');
+        res.json(rows);
     } catch (error) {
-        res.status(500).json({ mensaje: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// ELIMINAR
+// Crear nuevo
+const crearConsulta = async (req, res) => {
+    try {
+        const { nombre, carrera } = req.body;
+        await db.query('INSERT INTO estudiantes (nombre, carrera) VALUES (?, ?)', [nombre, carrera]);
+        res.json({ message: 'Estudiante creado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Eliminar
 const eliminarConsulta = async (req, res) => {
     try {
-        await consultaService.eliminarConsultaService(req.params.id);
-        res.json({ mensaje: 'Cita eliminada correctamente' });
+        const { id } = req.params;
+        await db.query('DELETE FROM estudiantes WHERE id = ?', [id]);
+        res.json({ message: 'Estudiante eliminado' });
     } catch (error) {
-        res.status(500).json({ mensaje: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
-module.exports = {
-    crearConsulta,
-    obtenerConsultas,
-    eliminarConsulta
+// Actualizar (NUEVO)
+const actualizarConsulta = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, carrera } = req.body;
+        await db.query('UPDATE estudiantes SET nombre = ?, carrera = ? WHERE id = ?', [nombre, carrera, id]);
+        res.json({ message: 'Estudiante actualizado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { 
+    obtenerConsultas, 
+    crearConsulta, 
+    eliminarConsulta, 
+    actualizarConsulta 
 };
