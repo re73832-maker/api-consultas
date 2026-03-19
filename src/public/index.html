@@ -2,100 +2,77 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Escolar - Railway</title>
+    <title>Sistema Escolar</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { text-align: center; color: #333; }
-        input { width: 95%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }
-        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .lista-estudiantes { margin-top: 20px; }
-        .estudiante-item { display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 10px; margin-bottom: 5px; border-radius: 4px; }
-        .btn-edit { background: #ffc107; width: auto; margin-right: 5px; padding: 5px 10px; }
-        .btn-delete { background: #dc3545; width: auto; padding: 5px 10px; }
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 400px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .item { display: flex; justify-content: space-between; background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 5px; align-items: center; }
+        .btn-edit { background: #ffc107; width: auto; color: black; margin-right: 5px; }
+        .btn-delete { background: #dc3545; width: auto; }
     </style>
 </head>
 <body>
+    <div class="card">
+        <h3>Registrar Estudiante</h3>
+        <input type="text" id="nombre" placeholder="Nombre">
+        <input type="text" id="carrera" placeholder="Carrera">
+        <button onclick="guardar()">Guardar en Railway</button>
+        <div id="lista"></div>
+    </div>
 
-<div class="container">
-    <h2>Registrar Estudiante</h2>
-    <input type="text" id="nombre" placeholder="Nombre completo">
-    <input type="text" id="carrera" placeholder="Carrera">
-    <button onclick="guardarEstudiante()">Guardar en Railway</button>
+    <script>
+        const url = '/api/estudiantes';
 
-    <div class="lista-estudiantes" id="lista">
-        </div>
-</div>
-
-<script>
-    const API_URL = '/api/estudiantes'; // Ajusta esto si tu ruta en index.js es diferente
-
-    // 1. Cargar estudiantes al abrir la página
-    async function cargarEstudiantes() {
-        const res = await fetch(API_URL);
-        const estudiantes = await res.json();
-        const lista = document.getElementById('lista');
-        lista.innerHTML = '<h3>Lista de Estudiantes</h3>';
-        
-        estudiantes.forEach(est => {
-            lista.innerHTML += `
-                <div class="estudiante-item">
-                    <span><strong>${est.nombre}</strong> (${est.carrera})</span>
-                    <div>
-                        <button class="btn-edit" onclick="prepararEdicion(${est.id}, '${est.nombre}', '${est.carrera}')">✏️</button>
-                        <button class="btn-delete" onclick="eliminarEstudiante(${est.id})">🗑️</button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    // 2. Guardar nuevo
-    async function guardarEstudiante() {
-        const nombre = document.getElementById('nombre').value;
-        const carrera = document.getElementById('carrera').value;
-
-        if (!nombre || !carrera) return alert("Llena todos los campos");
-
-        await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, carrera })
-        });
-
-        document.getElementById('nombre').value = '';
-        document.getElementById('carrera').value = '';
-        cargarEstudiantes();
-    }
-
-    // 3. Eliminar
-    async function eliminarEstudiante(id) {
-        if (confirm('¿Seguro que quieres eliminar este registro?')) {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            cargarEstudiantes();
-        }
-    }
-
-    // 4. Actualizar (Editar)
-    async function prepararEdicion(id, nombreActual, carreraActual) {
-        const nuevoNombre = prompt("Editar Nombre:", nombreActual);
-        const nuevaCarrera = prompt("Editar Carrera:", carreraActual);
-
-        if (nuevoNombre && nuevaCarrera) {
-            await fetch(`${API_URL}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre: nuevoNombre, carrera: nuevaCarrera })
+        async function cargar() {
+            const res = await fetch(url);
+            const data = await res.json();
+            const lista = document.getElementById('lista');
+            lista.innerHTML = '';
+            data.forEach(est => {
+                lista.innerHTML += `
+                    <div class="item">
+                        <span>${est.nombre}</span>
+                        <div>
+                            <button class="btn-edit" onclick="editar(${est.id}, '${est.nombre}', '${est.carrera}')">✏️</button>
+                            <button class="btn-delete" onclick="borrar(${est.id})">🗑️</button>
+                        </div>
+                    </div>`;
             });
-            cargarEstudiantes();
         }
-    }
 
-    // Ejecutar al iniciar
-    cargarEstudiantes();
-</script>
+        async function guardar() {
+            const nombre = document.getElementById('nombre').value;
+            const carrera = document.getElementById('carrera').value;
+            await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nombre, carrera })
+            });
+            location.reload();
+        }
 
+        async function borrar(id) {
+            if(confirm('¿Borrar?')) {
+                await fetch(`${url}/${id}`, { method: 'DELETE' });
+                cargar();
+            }
+        }
+
+        async function editar(id, n, c) {
+            const nuevoN = prompt("Nuevo nombre:", n);
+            const nuevaC = prompt("Nueva carrera:", c);
+            if(nuevoN && nuevaC) {
+                await fetch(`${url}/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ nombre: nuevoN, carrera: nuevaC })
+                });
+                cargar();
+            }
+        }
+        cargar();
+    </script>
 </body>
 </html>

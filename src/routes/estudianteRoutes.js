@@ -1,9 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { obtenerEstudiantes, crearEstudiante } = require('../controllers/estudianteController');
+const { 
+    crearConsulta, 
+    obtenerConsultas, 
+    eliminarConsulta, 
+    actualizarConsulta 
+} = require('../controllers/estudianteController');
 
-// Ruta para obtener (GET) y para crear (POST)
-router.get('/', obtenerEstudiantes);
-router.post('/', crearEstudiante);
+router.get('/', obtenerConsultas);
+router.post('/', crearConsulta);
+router.delete('/:id', eliminarConsulta);
+router.put('/:id', actualizarConsulta);
 
 module.exports = router;

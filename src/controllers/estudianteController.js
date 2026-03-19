@@ -1,33 +1,52 @@
-const pool = require('../config/db');
+const db = require('../config/db');
 
-// Listar todos los alumnos
-const obtenerEstudiantes = async (req, res) => {
+// Obtener todos los estudiantes
+const obtenerConsultas = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM estudiantes');
-        res.status(200).json(rows);
+        const [rows] = await db.query('SELECT * FROM estudiantes');
+        res.json(rows);
     } catch (error) {
-        res.status(500).json({ error: 'No se pudieron traer los datos' });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Guardar un nuevo alumno
-const crearEstudiante = async (req, res) => {
-    const { nombre, carrera } = req.body;
-
-    // Validación simple (Esto hace que el código se vea profesional)
-    if (!nombre || !carrera) {
-        return res.status(400).json({ msg: 'Faltan campos obligatorios: nombre y carrera' });
-    }
-
+// Crear un estudiante
+const crearConsulta = async (req, res) => {
     try {
-        const [result] = await pool.query(
-            'INSERT INTO estudiantes (nombre, carrera) VALUES (?, ?)',
-            [nombre, carrera]
-        );
-        res.status(201).json({ id: result.insertId, nombre, carrera, msg: 'Estudiante creado' });
+        const { nombre, carrera } = req.body;
+        await db.query('INSERT INTO estudiantes (nombre, carrera) VALUES (?, ?)', [nombre, carrera]);
+        res.json({ message: 'Estudiante creado' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al insertar en la DB' });
+        res.status(500).json({ error: error.message });
     }
 };
 
-module.exports = { obtenerEstudiantes, crearEstudiante };
+// ELIMINAR un estudiante (DELETE)
+const eliminarConsulta = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('DELETE FROM estudiantes WHERE id = ?', [id]);
+        res.json({ message: 'Estudiante eliminado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ACTUALIZAR un estudiante (PUT)
+const actualizarConsulta = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, carrera } = req.body;
+        await db.query('UPDATE estudiantes SET nombre = ?, carrera = ? WHERE id = ?', [nombre, carrera, id]);
+        res.json({ message: 'Estudiante actualizado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { 
+    obtenerConsultas, 
+    crearConsulta, 
+    eliminarConsulta, 
+    actualizarConsulta 
+};
