@@ -1,52 +1,31 @@
-const db = require('../config/db');
+const consultaService = require('../services/consultaService');
 
-// Obtener todos
 const obtenerConsultas = async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM estudiantes');
-        res.json(rows);
+        const consultas = await consultaService.obtenerConsultasService();
+        res.json(consultas);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Crear nuevo
 const crearConsulta = async (req, res) => {
     try {
-        const { nombre, carrera } = req.body;
-        await db.query('INSERT INTO estudiantes (nombre, carrera) VALUES (?, ?)', [nombre, carrera]);
-        res.json({ message: 'Estudiante creado' });
+        const resultado = await consultaService.registrarConsultaService(req.body);
+        res.status(201).json({ message: 'Consulta registrada con éxito' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(400).json({ error: error.message });
     }
 };
 
-// Eliminar
 const eliminarConsulta = async (req, res) => {
     try {
         const { id } = req.params;
-        await db.query('DELETE FROM estudiantes WHERE id = ?', [id]);
-        res.json({ message: 'Estudiante eliminado' });
+        await consultaService.eliminarConsultaService(id);
+        res.json({ message: 'Consulta eliminada' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Actualizar (NUEVO)
-const actualizarConsulta = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nombre, carrera } = req.body;
-        await db.query('UPDATE estudiantes SET nombre = ?, carrera = ? WHERE id = ?', [nombre, carrera, id]);
-        res.json({ message: 'Estudiante actualizado' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-module.exports = { 
-    obtenerConsultas, 
-    crearConsulta, 
-    eliminarConsulta, 
-    actualizarConsulta 
-};
+module.exports = { obtenerConsultas, crearConsulta, eliminarConsulta };

@@ -1,16 +1,6 @@
 const db = require('../config/db');
 
-// Insertar consulta
-const insertConsulta = async (consulta) => {
-    const { estudiante_id, tipo, descripcion, fecha, estado } = consulta;
-
-    return await db.query(
-        'INSERT INTO consultas (estudiante_id, tipo, descripcion, fecha, estado) VALUES (?, ?, ?, ?, ?)',
-        [estudiante_id, tipo, descripcion, fecha, estado || 'Pendiente']
-    );
-};
-
-// Obtener todas con JOIN
+// Obtener todas con el nombre del estudiante
 const getConsultas = async () => {
     const [rows] = await db.query(`
         SELECT c.id, e.nombre as alumno, c.tipo, c.descripcion, c.fecha, c.estado 
@@ -20,13 +10,18 @@ const getConsultas = async () => {
     return rows;
 };
 
-// Eliminar
+// Insertar nueva consulta
+const insertConsulta = async (datos) => {
+    const { estudiante_id, tipo, descripcion } = datos;
+    return await db.query(
+        'INSERT INTO consultas (estudiante_id, tipo, descripcion, fecha, estado) VALUES (?, ?, ?, NOW(), ?)',
+        [estudiante_id, tipo, descripcion, 'Pendiente']
+    );
+};
+
+// Eliminar consulta
 const deleteConsulta = async (id) => {
     return await db.query('DELETE FROM consultas WHERE id = ?', [id]);
 };
 
-module.exports = {
-    insertConsulta,
-    getConsultas,
-    deleteConsulta
-};
+module.exports = { getConsultas, insertConsulta, deleteConsulta };

@@ -1,15 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    crearConsulta, 
-    obtenerConsultas, 
-    eliminarConsulta,
-    actualizarConsulta 
-} = require('../controllers/consultaController');
+const consultaController = require('../controllers/consultaController');
 
-router.post('/', crearConsulta);
-router.get('/', obtenerConsultas);
-router.delete('/:id', eliminarConsulta);
-router.put('/:id', actualizarConsulta); // Ruta para actualizar
+router.get('/', consultaController.obtenerConsultas);
+router.post('/', consultaController.crearConsulta);
+router.delete('/:id', consultaController.eliminarConsulta);
 
 module.exports = router;
