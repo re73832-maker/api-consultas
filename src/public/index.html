@@ -2,54 +2,100 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Escolar - Railway</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; }
-        button:hover { background: #0056b3; }
-        ul { list-style: none; padding: 0; margin-top: 20px; }
-        li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { text-align: center; color: #333; }
+        input { width: 95%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .lista-estudiantes { margin-top: 20px; }
+        .estudiante-item { display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 10px; margin-bottom: 5px; border-radius: 4px; }
+        .btn-edit { background: #ffc107; width: auto; margin-right: 5px; padding: 5px 10px; }
+        .btn-delete { background: #dc3545; width: auto; padding: 5px 10px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Registrar Estudiante</h2>
-        <input type="text" id="nombre" placeholder="Nombre completo">
-        <input type="text" id="carrera" placeholder="Carrera">
-        <button onclick="guardar()">Guardar en Railway</button>
 
-        <h3>Lista de Estudiantes</h3>
-        <ul id="lista"></ul>
-    </div>
+<div class="container">
+    <h2>Registrar Estudiante</h2>
+    <input type="text" id="nombre" placeholder="Nombre completo">
+    <input type="text" id="carrera" placeholder="Carrera">
+    <button onclick="guardarEstudiante()">Guardar en Railway</button>
 
-    <script>
-        // Función para cargar la lista de la DB
-        async function cargar() {
-            const res = await fetch('/api/estudiantes');
-            const datos = await res.json();
-            const lista = document.getElementById('lista');
-            lista.innerHTML = datos.map(e => `<li>${e.nombre} <span>(${e.carrera})</span></li>`).join('');
+    <div class="lista-estudiantes" id="lista">
+        </div>
+</div>
+
+<script>
+    const API_URL = '/api/estudiantes'; // Ajusta esto si tu ruta en index.js es diferente
+
+    // 1. Cargar estudiantes al abrir la página
+    async function cargarEstudiantes() {
+        const res = await fetch(API_URL);
+        const estudiantes = await res.json();
+        const lista = document.getElementById('lista');
+        lista.innerHTML = '<h3>Lista de Estudiantes</h3>';
+        
+        estudiantes.forEach(est => {
+            lista.innerHTML += `
+                <div class="estudiante-item">
+                    <span><strong>${est.nombre}</strong> (${est.carrera})</span>
+                    <div>
+                        <button class="btn-edit" onclick="prepararEdicion(${est.id}, '${est.nombre}', '${est.carrera}')">✏️</button>
+                        <button class="btn-delete" onclick="eliminarEstudiante(${est.id})">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // 2. Guardar nuevo
+    async function guardarEstudiante() {
+        const nombre = document.getElementById('nombre').value;
+        const carrera = document.getElementById('carrera').value;
+
+        if (!nombre || !carrera) return alert("Llena todos los campos");
+
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, carrera })
+        });
+
+        document.getElementById('nombre').value = '';
+        document.getElementById('carrera').value = '';
+        cargarEstudiantes();
+    }
+
+    // 3. Eliminar
+    async function eliminarEstudiante(id) {
+        if (confirm('¿Seguro que quieres eliminar este registro?')) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            cargarEstudiantes();
         }
+    }
 
-        // Función para enviar datos
-        async function guardar() {
-            const nombre = document.getElementById('nombre').value;
-            const carrera = document.getElementById('carrera').value;
+    // 4. Actualizar (Editar)
+    async function prepararEdicion(id, nombreActual, carreraActual) {
+        const nuevoNombre = prompt("Editar Nombre:", nombreActual);
+        const nuevaCarrera = prompt("Editar Carrera:", carreraActual);
 
-            await fetch('/api/estudiantes', {
-                method: 'POST',
+        if (nuevoNombre && nuevaCarrera) {
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, carrera })
+                body: JSON.stringify({ nombre: nuevoNombre, carrera: nuevaCarrera })
             });
-
-            document.getElementById('nombre').value = '';
-            document.getElementById('carrera').value = '';
-            cargar(); // Recargar la lista
+            cargarEstudiantes();
         }
+    }
 
-        cargar(); // Cargar al abrir la página
-    </script>
+    // Ejecutar al iniciar
+    cargarEstudiantes();
+</script>
+
 </body>
 </html>
